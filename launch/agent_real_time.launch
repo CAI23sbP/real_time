@@ -3,28 +3,44 @@
     <arg name="record_data" default="true"/>
     <arg name="set_detector" default="dr_spaam"/>
     <arg name="real_time_model" default="SARL"/>
-    <arg name="ns" default="test"/>
+    <arg name="ns" default="test_1"/>
     <arg name="num_envs" default="1"/>
-    
-    <node pkg="cai_core" type="core_node.py" name="CoreNode" ns="$(env ROS_HOSTNAME)">
-        <rosparam file="$(find cai_core)/param/$(env ROBOT_MODEL)/core_params_robot.yaml" command="load"/>
-        <rosparam file="/root/robot_db/param/$(env ROBOT_MODEL)/bridge_config_robot.yaml" command="load"/>
-        <param name="tf_prefix" value="$(env ROS_HOSTNAME)"/>
-    </node>
-
+    <arg name="model" default="burger"/>
+    <arg name="map_file" default="$(find real_time_pkg)/map/map.yaml"/>
+    <arg name="is_pomdp" default ='true'/>
+    <param name="is_pomdp" value="$(arg is_pomdp)" />
 
     <node pkg="spacial_horizon" type="spacial_horizon_node" name="spacial_horizon_node" output="screen" >
         <rosparam file="$(find simulation-setup)/robot/$(arg model)/costmaps/plan_fsm_param.yaml" command="load" />
         <remap from="/move_base_simple/goal" to="$(arg ns)/move_base_simple/goal" />
         <remap from="/move_base/NavfnROS/make_plan" to="$(arg ns)/move_base/NavfnROS/make_plan" />
-        <!-- <remap from="/clock" to="$(arg ns)/clock" />
+        <remap from="/clock" to="$(arg ns)/clock" />
         <remap from="/odom" to="$(arg ns)/odom" />
         <remap from="/subgoal" to="$(arg ns)/subgoal" />
         <remap from="/goal" to="$(arg ns)/goal" />
-        <remap from="/global_plan" to="$(arg ns)/global_plan" /> -->
+        <remap from="/global_plan" to="$(arg ns)/global_plan" />
       </node>
 
-    <node pkg="evaluation" type="data_recorder_node.py" name="data_recorder_node" if="$(eval arg('record_data'))" />
+  <group ns="$(arg ns)">
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" >
+      <rosparam file="$(find simulation-setup)/robot/$(arg model)/costmaps/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find simulation-setup)/robot/$(arg model)/costmaps/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find simulation-setup)/move_base/move_base_params.yaml" command="load" />
+      <remap from="/clock" to="/$(arg ns)/clock" />
+      <remap from="cmd_vel" to="/$(arg ns)/_" />
+      <param name="global_costmap/global_frame" value="$(arg ns)/map"/>
+      <param name="global_costmap/robot_base_frame" value="$(arg ns)_$(arg model)/base_footprint"/>
+      <param name="global_costmap/map_type" value="$(arg ns)/costmap"/>
+      <param name="local_costmap/robot_base_frame" value="$(arg ns)_$(arg model)/base_footprint"/>
+      <param name="local_costmap/global_frame" value="$(arg ns)_$(arg model)/odom"/>
+      <param name="local_costmap/map_type" value="$(arg ns)/costmap"/>
+      <param name="local_costmap/obstacle_layer/scan/sensor_frame" value="$(arg ns)_$(arg model)/base_scan"/>
+      <param name="local_costmap/scan/sensor_frame" value="$(arg ns)_$(arg model)/base_scan"/>
+      <remap from="/map" to="/$(arg ns)/map" />
+    </node>
+
+    <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
 
     <node pkg="dr_spaam_ros" type="node.py" name="dr_spaam_ros" output="screen"  if="$(eval arg('set_detector')== 'dr_spaam')">
         <rosparam command="load" file="$(find dr_spaam_ros)/config/dr_spaam_ros.yaml"/>
@@ -36,9 +52,10 @@
     
     <include file="$(find crowdnav-ros)/launch/crowd_node.launch" if="$(eval arg('real_time_model') in ['CADRL','LSTM','SARL','RGL','DSRNN'])">
         <arg name="training_model" value="$(arg real_time_model)"/>
-        <arg name="ns" value="$(arg ns_prefix)_$(arg num_envs)" />
+        <arg name="ns" value="$(arg ns)" />
     </include> 
-
     
+    </group>
+
 </launch>
     
