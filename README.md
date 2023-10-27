@@ -25,7 +25,7 @@ example pkg (real_test.tar)
 
 ### Using virtual env for omo_r1 ###
 
-`rosws update` in your real env works pkg
+`cd real_time_pkg && rosws update` 
 
 ### launch testing ###
 
