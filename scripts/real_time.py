@@ -39,8 +39,10 @@ class REAL_AGENT(gym.Env):
         self.sub_goal = rospy.Subscriber(self.ns_prefix("move_base_simple/goal"),PoseStamped, self.cb_goal)
         self.pub_reset = rospy.Publisher(self.ns_prefix("reset"),Bool,queue_size=1)
         self.distance = 10
-    
+        self.get_goal = False
+
     def cb_goal(self,msg):
+        self.get_goal = True
         self.goal = msg.pose.position
 
     def get_msg(self,scan_msg, odom_msg ):
@@ -58,17 +60,17 @@ class REAL_AGENT(gym.Env):
         
     def get_data(self):
         self.is_reset = False
-        if self.distance <= 0.5:
-            info ={"done":True,"reason":"Goal"}
-            self.is_reset = True
+        info = {"done":False,"reason":"None"}
         
-        if np.min(self.scan) <= 0.3:
-            info ={"done":True,"reason":"Collision"}
-            self.is_reset = True
+        if self.get_goal:
+            if self.distance <= 0.5:
+                info ={"done":True,"reason":"Goal"}
+                self.is_reset = True
+            
+            if np.min(self.scan) <= 0.3:
+                info ={"done":True,"reason":"Collision"}
+                self.is_reset = True
         
-        else:
-            info = {"done":False,"reason":"None"}
-            self.is_reset = False
         self.pub_reset.publish(self.is_reset)
 
         return info
