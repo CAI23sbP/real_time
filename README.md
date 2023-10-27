@@ -2,9 +2,11 @@
 
 This is a real time testing git for a trained model in [cai_nav_tool](https://github.com/CAI23sbP/cai_nav_tool)
 
-## We don't provide your robot , you must clone your robot pkg ##
 
-## How to real env test learning ##
+# How to real env test learning #
+
+
+## NOICE: omo_r1 pkg only works in `ros-melodic`. please setting virtural env or using docker ##
 
 ### Using docker for omo_r1 ###
 please see detail setting args in `agent_real_time.launch`
