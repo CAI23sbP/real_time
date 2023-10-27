@@ -10,42 +10,46 @@
     <arg name="is_pomdp" default ='true'/>
     <param name="is_pomdp" value="$(arg is_pomdp)" />
 
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find real_time_pkg)/scripts/visualization.rviz" />
+
+  <group ns="$(arg ns)">
+    <include file="$(find real_time_pkg)/launch/tf_tree.launch" >
+        <arg name="ns" value="$(arg ns)" />
+    </include> 
+
     <node pkg="spacial_horizon" type="spacial_horizon_node" name="spacial_horizon_node" output="screen" >
         <rosparam file="$(find simulation-setup)/robot/$(arg model)/costmaps/plan_fsm_param.yaml" command="load" />
         <remap from="/move_base_simple/goal" to="$(arg ns)/move_base_simple/goal" />
         <remap from="/move_base/NavfnROS/make_plan" to="$(arg ns)/move_base/NavfnROS/make_plan" />
-        <remap from="/clock" to="$(arg ns)/clock" />
         <remap from="/odom" to="$(arg ns)/odom" />
+        <param name="namespace" value="$(arg ns)"/>
         <remap from="/subgoal" to="$(arg ns)/subgoal" />
-        <remap from="/goal" to="$(arg ns)/goal" />
         <remap from="/global_plan" to="$(arg ns)/global_plan" />
       </node>
 
-  <group ns="$(arg ns)">
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" >
       <rosparam file="$(find simulation-setup)/robot/$(arg model)/costmaps/local_costmap_params.yaml" command="load" />
       <rosparam file="$(find simulation-setup)/robot/$(arg model)/costmaps/global_costmap_params.yaml" command="load" />
       <rosparam file="$(find simulation-setup)/move_base/move_base_params.yaml" command="load" />
-      <remap from="/clock" to="/$(arg ns)/clock" />
       <remap from="cmd_vel" to="/$(arg ns)/_" />
       <param name="global_costmap/global_frame" value="$(arg ns)/map"/>
-      <param name="global_costmap/robot_base_frame" value="$(arg ns)_$(arg model)/base_footprint"/>
+      <param name="global_costmap/robot_base_frame" value="$(arg ns)/base_footprint"/>
       <param name="global_costmap/map_type" value="$(arg ns)/costmap"/>
-      <param name="local_costmap/robot_base_frame" value="$(arg ns)_$(arg model)/base_footprint"/>
-      <param name="local_costmap/global_frame" value="$(arg ns)_$(arg model)/odom"/>
+      <param name="local_costmap/robot_base_frame" value="$(arg ns)/base_footprint"/>
+      <param name="local_costmap/global_frame" value="$(arg ns)/odom"/>
       <param name="local_costmap/map_type" value="$(arg ns)/costmap"/>
-      <param name="local_costmap/obstacle_layer/scan/sensor_frame" value="$(arg ns)_$(arg model)/base_scan"/>
-      <param name="local_costmap/scan/sensor_frame" value="$(arg ns)_$(arg model)/base_scan"/>
+      <param name="local_costmap/obstacle_layer/scan/sensor_frame" value="$(arg ns)/base_scan"/>
+      <param name="local_costmap/scan/sensor_frame" value="$(arg ns)/base_scan"/>
+      <remap from="/move_base_simple/goal" to="$(arg ns)/move_base_simple/goal" />
+
       <remap from="/map" to="/$(arg ns)/map" />
     </node>
 
     <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
-
     <node pkg="dr_spaam_ros" type="node.py" name="dr_spaam_ros" output="screen"  if="$(eval arg('set_detector')== 'dr_spaam')">
         <rosparam command="load" file="$(find dr_spaam_ros)/config/dr_spaam_ros.yaml"/>
         <rosparam command="load" file="$(find dr_spaam_ros)/config/topics.yaml"/>
-        <remap from="/clock" to="/$(arg ns)/clock"/>
         <remap from="/dr_spaam_detections" to="/$(arg ns)/dr_spaam_detections"/>
         <remap from="/dr_spaam_vel" to="/$(arg ns)/dr_spaam_vel"/>
     </node>
