@@ -1,0 +1,9 @@
+- git:
+    local-name: ../ydlidar
+    uri: https://github.com/CAI23sbP/ydlidar
+    version: omo_r1_master
+
+- git:
+    local-name: ../omo_r1
+    uri: https://github.com/CAI23sbP/omo_r1
+    version: omo_r1_master
