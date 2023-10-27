@@ -15,7 +15,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 import sys
 from std_msgs.msg import Bool
 import math 
-from .env_help import SET_ENV
+from env_help import SET_ENV
 
 class REAL_AGENT(gym.Env): 
     def __init__(self, namespace):
@@ -33,7 +33,6 @@ class REAL_AGENT(gym.Env):
 
         self.ats = set_env.ats
         self.ats.registerCallback(self.get_msg)
-        self.task = set_env.task
         self.is_reset = False 
         self.agent_action_pub = set_env.agent_action_pub
         self.number_of_resets = set_env.number_of_resets
@@ -66,8 +65,6 @@ class REAL_AGENT(gym.Env):
         if np.min(self.scan) <= 0.3:
             info ={"done":True,"reason":"Collision"}
             self.is_reset = True
-            self.task.reset()
-
         
         else:
             info = {"done":False,"reason":"None"}
@@ -78,11 +75,10 @@ class REAL_AGENT(gym.Env):
 
     def reset(self):
         self.agent_action_pub.publish(Twist())
-        self.task.reset()
         self.number_of_resets += 1
 
 if "__main__" ==__name__:
-    env = REAL_AGENT()
+    env = REAL_AGENT('/test_1')
     ob = env.reset()
     while not rospy.is_shutdown():
         info = env.get_data()
